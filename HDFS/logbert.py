@@ -50,7 +50,7 @@ options["attn_heads"] = 4
 
 options["epochs"] = 200
 options["n_epochs_stop"] = 10
-options["batch_size"] = 32
+options["batch_size"] = 512 #32
 
 options["corpus_lines"] = None
 options["on_memory"] = True

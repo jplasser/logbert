@@ -119,4 +119,4 @@ if __name__ == "__main__":
     parser(input_dir, output_dir, log_file, log_format, 'drain')
     mapping()
     hdfs_sampling(log_structured_file)
-    generate_train_test(log_sequence_file, n=4855)
+    generate_train_test(log_sequence_file) #, n=4855)
