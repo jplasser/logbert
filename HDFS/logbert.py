@@ -15,7 +15,7 @@ from bert_pytorch import Predictor, Trainer
 from bert_pytorch.dataset.utils import seed_everything
 
 options = dict()
-options['device'] = 'cuda' if torch.cuda.is_available() else 'cpu'
+options['device'] = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
 options["output_dir"] = "../output/hdfs/"
 options["model_dir"] = options["output_dir"] + "bert/"
 options["model_path"] = options["model_dir"] + "best_bert.pth"
@@ -50,7 +50,7 @@ options["attn_heads"] = 4
 
 options["epochs"] = 200
 options["n_epochs_stop"] = 10
-options["batch_size"] = 512 #32
+options["batch_size"] = 512 if torch.cuda.is_available() else 512 if torch.backends.mps.is_available() else 32
 
 options["corpus_lines"] = None
 options["on_memory"] = True
