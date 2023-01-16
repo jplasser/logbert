@@ -11,9 +11,10 @@ import numpy as np
 from logparser import Spell, Drain
 
 # get [log key, delta time] as input for deeplog
-input_dir  = os.path.expanduser('~/.dataset/http/')
+# input_dir  = os.path.expanduser('~/.dataset/http/')
+input_dir  = '../../data/'
 output_dir = '../output/http/'  # The output directory of parsing results
-log_file   = "http.log"  # The input log file name
+log_file   = "mein_elba_requests_dump_train.txt"  # The input log file name
 
 log_structured_file = output_dir + log_file + "_structured.csv"
 log_templates_file = output_dir + log_file + "_templates.csv"
@@ -43,10 +44,15 @@ def parser(input_dir, output_dir, log_file, log_format, type='drain'):
     elif type == 'drain':
         # <Date> <Time> <Pid> <Level> <Component>: <Content>'  # http log format
         regex = [
-            r"(?<=blk_)[-\d]+", # block_id
+            r'(?<=info.raiffeisen.at)(.*)$', # tracking
+            # r"(?<=blk_)[-\d]+", # block_id
+            r'ELOOE\d{2}[A-Z]\d[A-Z]\d{6}', # Verfügernummer
             r'\d+\.\d+\.\d+\.\d+',  # IP
             r"(/[-\w]+)+",  # file path
-            #r'(?<=[^A-Za-z0-9])(\-?\+?\d+)(?=[^A-Za-z0-9])|[0-9]+$',  # Numbers
+            r'(?<=[^A-Za-z0-9])(\-?\+?\d+)(?=[^A-Za-z0-9])|[0-9]+$',  # Numbers
+            r'(?<=\=)(?:[\s\S]*?(?= \w+=|$))', # text after =
+            r'[" \s\.\-](?:0[xX])?[0-9a-fA-F]{8,}["]*', # hex number
+            r'\b[A-Z]{2}[0-9]{2}(?:[ ]?[0-9]{4}){4}(?!(?:[ ]?[0-9]){3})(?:[ ]?[0-9]{1,2})?\b', # IBAN
         ]
         # the hyper parameter is set according to http://jmzhu.logpai.com/pub/pjhe_icws2017.pdf
         st = 0.5  # Similarity threshold
@@ -81,10 +87,10 @@ def http_sampling(log_file, window='session'):
 
 def generate_train_test(http_sequence_file, n=None, ratio=0.3):
     blk_label_dict = {}
-    blk_label_file = os.path.join(input_dir, "anomaly_label.csv")
-    blk_df = pd.read_csv(blk_label_file)
-    for _ , row in tqdm(blk_df.iterrows()):
-        blk_label_dict[row["BlockId"]] = 1 if row["Label"] == "Anomaly" else 0
+    # blk_label_file = os.path.join(input_dir, "anomaly_label.csv")
+    # blk_df = pd.read_csv(blk_label_file)
+    # for _ , row in tqdm(blk_df.iterrows()):
+    #     blk_label_dict[row["BlockId"]] = 1 if row["Label"] == "Anomaly" else 0
 
     seq = pd.read_csv(http_sequence_file)
     seq["Label"] = seq["BlockId"].apply(lambda x: blk_label_dict.get(x)) #add label to the sequence of each blockid
@@ -92,14 +98,14 @@ def generate_train_test(http_sequence_file, n=None, ratio=0.3):
     normal_seq = seq[seq["Label"] == 0]["EventSequence"]
     normal_seq = normal_seq.sample(frac=1, random_state=20) # shuffle normal data
 
-    abnormal_seq = seq[seq["Label"] == 1]["EventSequence"]
+    # abnormal_seq = seq[seq["Label"] == 1]["EventSequence"]
     normal_len, abnormal_len = len(normal_seq), len(abnormal_seq)
     train_len = n if n else int(normal_len * ratio)
     print("normal size {0}, abnormal size {1}, training size {2}".format(normal_len, abnormal_len, train_len))
 
     train = normal_seq.iloc[:train_len]
     test_normal = normal_seq.iloc[train_len:]
-    test_abnormal = abnormal_seq
+    # test_abnormal = abnormal_seq
 
     df_to_file(train, output_dir + "train")
     df_to_file(test_normal, output_dir + "test_normal")
@@ -117,8 +123,8 @@ def df_to_file(df, file_name):
 if __name__ == "__main__":
     # 1. parse http log
     # log_format = '<Date> <Time> <Pid> <Level> <Component>: <Content>'  # http log format
-    log_format = '<Date> <Time> <Method> <Level> <Component>: <Content>'  # http log format
-    parser(input_dir, output_dir, log_file, log_format, 'drain')
-    mapping()
+    log_format = '<Date> <Time> <Reason> <ContentType> <Accept> <Host> <Method> <Content>'  # http log format
+    # parser(input_dir, output_dir, log_file, log_format, 'drain')
+    # mapping()
     http_sampling(log_structured_file)
-    generate_train_test(log_sequence_file, n=4855)
+    # generate_train_test(log_sequence_file, n=4855)
