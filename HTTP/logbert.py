@@ -16,7 +16,7 @@ from bert_pytorch.dataset.utils import seed_everything
 
 options = dict()
 options['device'] = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
-options["output_dir"] = "../output/hdfs/"
+options["output_dir"] = "../output/http/"
 options["model_dir"] = options["output_dir"] + "bert/"
 options["model_path"] = options["model_dir"] + "best_bert.pth"
 options["train_vocab"] = options["output_dir"] + "train"
@@ -31,7 +31,7 @@ options["mask_ratio"] = 0.65
 # sample ratio
 options["train_ratio"] = 1
 options["valid_ratio"] = 0.1
-options["test_ratio"] = 1
+options["test_ratio"] = 0.01 # 1
 
 # features
 options["is_logkey"] = True
@@ -50,7 +50,7 @@ options["attn_heads"] = 4
 
 options["epochs"] = 200
 options["n_epochs_stop"] = 10
-options["batch_size"] = 512 if torch.cuda.is_available() else 512 if torch.backends.mps.is_available() else 32
+options["batch_size"] = 512 if torch.cuda.is_available() else 128 if torch.backends.mps.is_available() else 32
 
 options["corpus_lines"] = None
 options["on_memory"] = True
@@ -68,14 +68,14 @@ options["num_candidates"] = 6
 options["gaussian_mean"] = 0
 options["gaussian_std"] = 1
 
-seed_everything(seed=1234)
+seed_everything(seed=4711)
 
 if not os.path.exists(options['model_dir']):
     os.makedirs(options['model_dir'], exist_ok=True)
 
-print("device", options["device"])
-print("features logkey:{} time: {}\n".format(options["is_logkey"], options["is_time"]))
-print("mask ratio", options["mask_ratio"])
+# print("device", options["device"])
+# print("features logkey:{} time: {}\n".format(options["is_logkey"], options["is_time"]))
+# print("mask ratio", options["mask_ratio"])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

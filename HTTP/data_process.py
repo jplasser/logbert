@@ -41,6 +41,7 @@ def parser(input_dir, output_dir, log_file, log_format, type='drain'):
         parser.parse(log_file)
 
     elif type == 'drain':
+        # <Date> <Time> <Pid> <Level> <Component>: <Content>'  # http log format
         regex = [
             r"(?<=blk_)[-\d]+", # block_id
             r'\d+\.\d+\.\d+\.\d+',  # IP
@@ -115,8 +116,9 @@ def df_to_file(df, file_name):
 
 if __name__ == "__main__":
     # 1. parse http log
-    log_format = '<Date> <Time> <Pid> <Level> <Component>: <Content>'  # http log format
+    # log_format = '<Date> <Time> <Pid> <Level> <Component>: <Content>'  # http log format
+    log_format = '<Date> <Time> <Method> <Level> <Component>: <Content>'  # http log format
     parser(input_dir, output_dir, log_file, log_format, 'drain')
     mapping()
     http_sampling(log_structured_file)
-    generate_train_test(log_sequence_file) #, n=4855)
+    generate_train_test(log_sequence_file, n=4855)
