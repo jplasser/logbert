@@ -31,7 +31,7 @@ options["mask_ratio"] = 0.65
 # sample ratio
 options["train_ratio"] = 1
 options["valid_ratio"] = 0.1
-options["test_ratio"] = 0.01 # 1
+options["test_ratio"] = 1 # 0.01 # 1
 
 # features
 options["is_logkey"] = True
@@ -50,7 +50,7 @@ options["attn_heads"] = 4
 
 options["epochs"] = 200
 options["n_epochs_stop"] = 10
-options["batch_size"] = 512 if torch.cuda.is_available() else 4 if torch.backends.mps.is_available() else 32 # 128 MPS
+options["batch_size"] = 512 if torch.cuda.is_available() else 4 if torch.backends.mps.is_available() else 4 # 128 MPS
 
 options["corpus_lines"] = None
 options["on_memory"] = True
