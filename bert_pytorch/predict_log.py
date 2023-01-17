@@ -227,7 +227,7 @@ class Predictor():
         return total_results, output_cls
 
     def predict(self):
-        model = torch.load(self.model_path)
+        model = torch.load(self.model_path, map_location=torch.device('cpu'))
         model.to(self.device)
         model.eval()
         print('model_path: {}'.format(self.model_path))
@@ -245,7 +245,7 @@ class Predictor():
                 error_dict = pickle.load(f)
 
         if self.hypersphere_loss:
-            center_dict = torch.load(self.model_dir + "best_center.pt")
+            center_dict = torch.load(self.model_dir + "best_center.pt", map_location=torch.device('cpu'))
             self.center = center_dict["center"]
             self.radius = center_dict["radius"]
             # self.center = self.center.view(1,-1)
