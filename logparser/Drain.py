@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import hashlib
 from datetime import datetime
+import pickle
 
 
 class Logcluster:
@@ -203,8 +204,11 @@ class LogParser:
             template_id = hashlib.md5(template_str.encode('utf-8')).hexdigest()[0:8]
             for logID in logClust.logIDL:
                 logID -= 1
-                log_templates[logID] = template_str
-                log_templateids[logID] = template_id
+                try:
+                    log_templates[logID] = template_str
+                    log_templateids[logID] = template_id
+                except:
+                    pass
             df_events.append([template_id, template_str, occurrence])
 
         df_event = pd.DataFrame(df_events, columns=['EventId', 'EventTemplate', 'Occurrences'])
@@ -244,11 +248,23 @@ class LogParser:
 
     def parse(self, logName):
         print('Parsing file: ' + os.path.join(self.path, logName))
+
+        # save root node for later
+        print("Loading rootNode, if available.")
+        try:
+            with open('../output/http/rootnode.pkl', "rb") as f:
+                savepkl = pickle.load(f)
+            rootNode = savepkl['rootNode']
+            logCluL = savepkl['logCluL']
+            print("rootNode loaded successfully!")
+        except:
+            rootNode = Node()
+            logCluL = []
+            print("... not available.")
+
         start_time = datetime.now()
         self.logName = logName
-        rootNode = Node()
-        logCluL = []
-
+        
         self.load_data()
 
         count = 0
@@ -282,6 +298,13 @@ class LogParser:
         self.outputResult(logCluL)
 
         print('Parsing done. [Time taken: {!s}]'.format(datetime.now() - start_time))
+
+        # save root node for later
+        if not os.path.isfile('../output/http/rootnode.pkl'):
+            print("Saving rootNode.")
+            savepkl = {'rootNode': rootNode, 'logCluL': logCluL}
+            with open('../output/http/rootnode.pkl', "wb") as f:
+                pickle.dump(savepkl, f)
 
     def load_data(self):
         headers, regex = self.generate_logformat_regex(self.log_format)

@@ -50,7 +50,7 @@ def parser(input_dir, output_dir, log_file, log_format, type='drain'):
             r'\d+\.\d+\.\d+\.\d+',  # IP
             r"(/[-\w]+)+",  # file path
             r'(?<=[^A-Za-z0-9])(\-?\+?\d+)(?=[^A-Za-z0-9])|[0-9]+$',  # Numbers
-            r'(?<=\=)(?:[\s\S]*?(?= \w+=|$))', # text after =
+            r'(?<=\=)(?:[\s\S]*?(?= \w+=|$))', # text after
             r'[" \s\.\-](?:0[xX])?[0-9a-fA-F]{8,}["]*', # hex number
             r'\b[A-Z]{2}[0-9]{2}(?:[ ]?[0-9]{4}){4}(?!(?:[ ]?[0-9]){3})(?:[ ]?[0-9]{1,2})?\b', # IBAN
         ]
@@ -123,7 +123,7 @@ def df_to_file(df, file_name):
 if __name__ == "__main__":
     # 1. parse http log
     # log_format = '<Date> <Time> <Pid> <Level> <Component>: <Content>'  # http log format
-    log_format = '<Date> <Time> <Reason> <ContentType> <Accept> <Host> <Method> <Content>'  # http log format
+    log_format = '<Date> <Time> <State> <Reason> <ContentType> <Accept> <Host> <Method> <Content>'  # http log format
     parser(input_dir, output_dir, log_file, log_format, 'drain')
     mapping()
     http_sampling(log_structured_file)
