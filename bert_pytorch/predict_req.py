@@ -289,7 +289,7 @@ class ReqPredictor():
 
         pred = get_predicition_with_threshold(test_normal_results,
                                             params=params,
-                                            seq_th=0.4)
+                                            seq_th=0.8)
 
         if pred is not None:
             print(f"The given sequence is {'an anomaly' if pred else 'normal'}.")
@@ -300,4 +300,6 @@ class ReqPredictor():
             
         elapsed_time = time.time() - start_time
         print('elapsed_time: {}'.format(elapsed_time))
+
+        return (True, 'Anomaly') if pred else (False, 'normal')
 
