@@ -90,6 +90,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
     print("arguments", args)
 
-    if args.mode == 'predict':
-        ReqPredictor(options).predict()
+    # if args.mode == 'predict':
+    ReqPredictor(options).predict()
 
