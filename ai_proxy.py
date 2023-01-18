@@ -280,10 +280,12 @@ def response(flow: http.HTTPFlow) -> None:
         current_output_as_list.append(content)  # Aufbereiteter Request Content
 
         if len(list_of_requests) < REQUEST_SLIDING_WINDOW_COUNT:
-            print(len(list_of_requests), end=' ', flush=True)
+            # print(len(list_of_requests), end=' ', flush=True)
+            print('#', end='', flush=True)
             list_of_requests.append(current_output_as_list)
         else:
-            print(len(list_of_requests))
+            # print(len(list_of_requests))
+            print('#')
             list_of_requests = list_of_requests[1:]
             list_of_requests.append(current_output_as_list)
 
