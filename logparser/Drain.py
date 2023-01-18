@@ -247,20 +247,20 @@ class LogParser:
             self.printTree(node.childD[child], dep + 1)
 
     def parse(self, logName):
-        print('Parsing file: ' + os.path.join(self.path, logName))
+        # print('Parsing file: ' + os.path.join(self.path, logName))
 
         # save root node for later
-        print("Loading rootNode, if available.")
+        # print("Loading rootNode, if available.")
         try:
-            with open('../output/http/rootnode.pkl', "rb") as f:
+            with open('./output/http/rootnode.pkl', "rb") as f:
                 savepkl = pickle.load(f)
             rootNode = savepkl['rootNode']
             logCluL = savepkl['logCluL']
-            print("rootNode loaded successfully!")
+            # print("rootNode loaded successfully!")
         except:
             rootNode = Node()
             logCluL = []
-            print("... not available.")
+            # print("... not available.")
 
         start_time = datetime.now()
         self.logName = logName
@@ -289,22 +289,22 @@ class LogParser:
                     matchCluster.logTemplate = newTemplate
 
             count += 1
-            if count % 1000 == 0 or count == len(self.df_log):
-                print('Processed {0:.1f}% of log lines.'.format(count * 100.0 / len(self.df_log)), end='\r')
+            # if count % 1000 == 0 or count == len(self.df_log):
+            #     print('Processed {0:.1f}% of log lines.'.format(count * 100.0 / len(self.df_log)), end='\r')
 
         if not os.path.exists(self.savePath):
             os.makedirs(self.savePath)
 
         self.outputResult(logCluL)
 
-        print('Parsing done. [Time taken: {!s}]'.format(datetime.now() - start_time))
+        # print('Parsing done. [Time taken: {!s}]'.format(datetime.now() - start_time))
 
-        # save root node for later
-        if not os.path.isfile('../output/http/rootnode.pkl'):
-            print("Saving rootNode.")
-            savepkl = {'rootNode': rootNode, 'logCluL': logCluL}
-            with open('../output/http/rootnode.pkl', "wb") as f:
-                pickle.dump(savepkl, f)
+        # # save root node for later
+        # if not os.path.isfile('./output/http/rootnode.pkl'):
+        #     print("Saving rootNode.")
+        #     savepkl = {'rootNode': rootNode, 'logCluL': logCluL}
+        #     with open('./output/http/rootnode.pkl', "wb") as f:
+        #         pickle.dump(savepkl, f)
 
     def load_data(self):
         headers, regex = self.generate_logformat_regex(self.log_format)
@@ -333,7 +333,7 @@ class LogParser:
                     # print("\n", line)
                     # print(e)
                     pass
-        print("Total size after encoding is", linecount, cnt)
+        # print("Total size after encoding is", linecount, cnt)
         logdf = pd.DataFrame(log_messages, columns=headers)
         logdf.insert(0, 'LineId', None)
         logdf['LineId'] = [i + 1 for i in range(linecount)]

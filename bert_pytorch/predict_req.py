@@ -93,6 +93,10 @@ class ReqPredictor():
         self.mask_ratio = options["mask_ratio"]
         self.min_len=options["min_len"]
 
+        self.model = options["model"]
+        self.center_dict = options["center_dict"]
+        self.seq_th = options["seq_th"]
+
     def detect_logkey_anomaly(self, masked_output, masked_label):
         num_undetected_tokens = 0
         output_maskes = []
@@ -112,7 +116,8 @@ class ReqPredictor():
         log_seqs = []
         tim_seqs = []
         with open(output_dir + file_name, "r") as f:
-            for idx, line in tqdm(enumerate(f.readlines())):
+            # for idx, line in tqdm(enumerate(f.readlines())):
+            for idx, line in enumerate(f.readlines()):
                 #if idx > 40: break
                 log_seq, tim_seq = fixed_window(line, window_size,
                                                 adaptive_window=adaptive_window,
@@ -133,7 +138,7 @@ class ReqPredictor():
         log_seqs = log_seqs[test_sort_index]
         tim_seqs = tim_seqs[test_sort_index]
 
-        print(f"{file_name} size: {len(log_seqs)}")
+        # print(f"{file_name} size: {len(log_seqs)}")
         return log_seqs, tim_seqs
 
     def helper(self, model, output_dir, file_name, vocab, scale=None, error_dict=None):
@@ -209,18 +214,18 @@ class ReqPredictor():
                     # if dist > 0.25:
                     #     pass
 
-                if idx < 10 or idx % 1000 == 0:
-                    print(
-                        "{}, #time anomaly: {} # of undetected_tokens: {}, # of masked_tokens: {} , "
-                        "# of total logkey {}, deepSVDD_label: {} \n".format(
-                            file_name,
-                            seq_results["num_error"],
-                            seq_results["undetected_tokens"],
-                            seq_results["masked_tokens"],
-                            seq_results["total_logkey"],
-                            seq_results['deepSVDD_label']
-                        )
-                    )
+                # if idx < 10 or idx % 1000 == 0:
+                #     print(
+                #         "{}, #time anomaly: {} # of undetected_tokens: {}, # of masked_tokens: {} , "
+                #         "# of total logkey {}, deepSVDD_label: {} \n".format(
+                #             file_name,
+                #             seq_results["num_error"],
+                #             seq_results["undetected_tokens"],
+                #             seq_results["masked_tokens"],
+                #             seq_results["total_logkey"],
+                #             seq_results['deepSVDD_label']
+                #         )
+                #     )
                 total_results.append(seq_results)
 
         # for time
@@ -233,10 +238,11 @@ class ReqPredictor():
         return total_results, output_cls
 
     def predict(self):
-        model = torch.load(self.model_path, map_location=torch.device('cpu'))
+        # model = torch.load(self.model_path, map_location=torch.device('cpu'))
+        model = self.model
         model.to(self.device)
         model.eval()
-        print('model_path: {}'.format(self.model_path))
+        # print('model_path: {}'.format(self.model_path))
 
         start_time = time.time()
         vocab = WordVocab.load_vocab(self.vocab_path)
@@ -251,13 +257,14 @@ class ReqPredictor():
                 error_dict = pickle.load(f)
 
         if self.hypersphere_loss:
-            center_dict = torch.load(self.model_dir + "best_center.pt", map_location=torch.device('cpu'))
+            # center_dict = torch.load(self.model_dir + "best_center.pt", map_location=torch.device('cpu'))
+            center_dict = self.center_dict
             self.center = center_dict["center"]
             self.radius = center_dict["radius"]
             # self.center = self.center.view(1,-1)
 
 
-        print("test normal predicting")
+        # print("test normal predicting")
         test_normal_results, test_normal_errors = self.helper(model, self.output_dir, "train_reqseq", vocab, scale, error_dict)
 
         # print("test abnormal predicting")
@@ -289,17 +296,17 @@ class ReqPredictor():
 
         pred = get_predicition_with_threshold(test_normal_results,
                                             params=params,
-                                            seq_th=0.8)
+                                            seq_th=self.seq_th)
 
-        if pred is not None:
-            print(f"The given sequence is {'an anomaly' if pred else 'normal'}.")
-        else:
-            print("best threshold: {}, best threshold ratio: {}".format(best_th, best_seq_th))
-            print("TP: {}, TN: {}, FP: {}, FN: {}".format(TP, TN, FP, FN))
-            print('Precision: {:.2f}%, Recall: {:.2f}%, F1-measure: {:.2f}%'.format(P, R, F1))
+        # if pred is not None:
+        #     print(f"The given sequence is {'an anomaly' if pred else 'normal'}.")
+        # else:
+        #     print("best threshold: {}, best threshold ratio: {}".format(best_th, best_seq_th))
+        #     print("TP: {}, TN: {}, FP: {}, FN: {}".format(TP, TN, FP, FN))
+        #     print('Precision: {:.2f}%, Recall: {:.2f}%, F1-measure: {:.2f}%'.format(P, R, F1))
             
         elapsed_time = time.time() - start_time
-        print('elapsed_time: {}'.format(elapsed_time))
+        # print('elapsed_time: {}'.format(elapsed_time))
 
         return (True, 'Anomaly') if pred else (False, 'normal')
 
