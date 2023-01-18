@@ -9,6 +9,80 @@ from collections import defaultdict
 from tqdm import tqdm
 import numpy as np
 from logparser import Drain
+import random
+
+import sys
+sys.path.append("../")
+sys.path.append("../../")
+
+import os
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, '../deeplog')
+
+
+import argparse
+import torch
+
+from bert_pytorch.dataset import WordVocab
+# from bert_pytorch import Predictor, Trainer
+from bert_pytorch import ReqPredictor
+from bert_pytorch.dataset.utils import seed_everything
+
+options = dict()
+options['device'] = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
+options["output_dir"] = "../output/http/"
+options["model_dir"] = options["output_dir"] + "bert/"
+options["model_path"] = options["model_dir"] + "best_bert.pth"
+options["train_vocab"] = options["output_dir"] + "train"
+options["vocab_path"] = options["output_dir"] + "vocab.pkl"  # pickle file
+
+options["window_size"] = 128
+options["adaptive_window"] = True
+options["seq_len"] = 512
+options["max_len"] = 512 # for position embedding
+options["min_len"] = 10
+options["mask_ratio"] = 0.65
+# sample ratio
+options["train_ratio"] = 1
+options["valid_ratio"] = 0.1
+options["test_ratio"] = 1 # 0.01 # 1
+
+# features
+options["is_logkey"] = True
+options["is_time"] = False
+
+options["hypersphere_loss"] = True
+options["hypersphere_loss_test"] = False
+
+options["scale"] = None # MinMaxScaler()
+options["scale_path"] = options["model_dir"] + "scale.pkl"
+
+# model
+options["hidden"] = 256 # embedding size
+options["layers"] = 4
+options["attn_heads"] = 4
+
+options["epochs"] = 200
+options["n_epochs_stop"] = 10
+options["batch_size"] = 512 if torch.cuda.is_available() else 4 if torch.backends.mps.is_available() else 4 # 128 MPS
+
+options["corpus_lines"] = None
+options["on_memory"] = True
+options["num_workers"] = 1
+options["lr"] = 1e-3
+options["adam_beta1"] = 0.9
+options["adam_beta2"] = 0.999
+options["adam_weight_decay"] = 0.00
+options["with_cuda"]= True
+options["cuda_devices"] = None
+options["log_freq"] = None
+
+# predict
+options["num_candidates"] = 6
+options["gaussian_mean"] = 0
+options["gaussian_std"] = 1
+
+# seed_everything(seed=4711)
 
 # get [log key, delta time] as input for deeplog
 # input_dir  = os.path.expanduser('~/.dataset/http/')
@@ -138,9 +212,79 @@ if __name__ == "__main__":
     # log_format = '<Date> <Time> <Pid> <Level> <Component>: <Content>'  # http log format
     log_format = '<Date> <Time> <State> <Reason> <ContentType> <Accept> <Host> <Method> <Content>'  # http log format
 
-    log_reqseq = [] # log sequence of 10 requests (strings from requests_full_log)
+    # log_reqseq = [] # log sequence of 10 requests (strings from requests_full_log)
 
-    parser(log_reqseq, log_format, 'drain')
-    mapping() # generates http_log_templates.json
-    http_sampling(log_structured_file) # input: log_structured_file, generates http_sequence.csv
-    generate_train_test(log_sequence_file) #, n=4855)
+#     log_reqseq = ["20230116 204204.949365 200 nan image/gif;charset=UTF-8 image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8 info.raiffeisen.at GET info.raiffeisen.at/int/t/track/3939373332/?ak=drb-pfp pref=https://pfp.tstux.pi.r-itservices.at/ sw=1920 sh=1080 dnt=false clang=de-DE ave=13.0.2 uid=21bd6f3d-ac40-43b1-bf68-5f1fbe726133 blz=34000 ubd=446857200000 ug=male pve=tstux-rit-drb-pfp-highest-rb env=tstux bg=RBG bgc=rbgooe bst=9 pp=/auftraege ppp=/meine-produkte/konten/AT353400000000010017/kontozentrale pauth=true watrc=53EB094D-C17A-48A0-890D-6F9912A1E646 wanv=C1EA7835-6F67-48B5-B3FB-F9E933892044 evt=pageview clientTimestamp=1673861265748 reason: blk_3164864034487937677",
+# "20230116 204204.949415 200 nan image/gif;charset=UTF-8 image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8 info.raiffeisen.at GET info.raiffeisen.at/int/t/track/3939373332/?ak=drb-pfp pref=https://pfp.tstux.pi.r-itservices.at/ sw=1920 sh=1080 dnt=false clang=de-DE ave=13.0.2 uid=21bd6f3d-ac40-43b1-bf68-5f1fbe726133 blz=34000 ubd=446857200000 ug=male pve=tstux-rit-drb-pfp-highest-rb env=tstux bg=RBG bgc=rbgooe bst=9 pp=/meine-produkte/konten/AT353400000000010017/kontozentrale ppp=/meine-produkte/konten/AT783400000000010116/kontozentrale pauth=true watrc=53EB094D-C17A-48A0-890D-6F9912A1E646 wanv=C1EA7835-6F67-48B5-B3FB-F9E933892044 evt=useraction evc=widgetsystem eva=mainNavClicked evv={\"name\":\"AuftrÃ¤ge\"} evla=MainNav geklickt clientTimestamp=1673861265732 reason: blk_3164864034487937677",
+# "20230116 204204.949475 304 Not Modified text/html;charset=ISO-8859-1 application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/bankingzv-auftrag/auftraege-ui/assets/config/wsConfig.json blk_3164864034487937677",
+# "20230116 204204.949492 304 Not Modified text/html;charset=ISO-8859-1 application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/bankingzv-auftrag/auftraege-ui/assets/i18n/de.json blk_3164864034487937677",
+# "20230116 204204.949508 200 OK text/plain application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/bankingzv-auftrag/auftraege-ui/assets/config/wsConfig.json blk_3164864034487937677",
+# "20230116 204204.949523 200 OK application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingws-widgetsystem/bankingws-ui/rest/produkte blk_3164864034487937677",
+# "20230116 204204.949539 200 OK text/plain application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/bankingzv-auftrag/auftraege-ui/assets/i18n/de.json blk_3164864034487937677",
+# "20230116 204204.949555 304 Not Modified text/html;charset=ISO-8859-1 application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/bankingzv-erfasster-auftrag/erfasster-auftrag-ui/assets/i18n/feature/de.json blk_3164864034487937677",
+# "20230116 204204.949571 200 OK application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-auftrag/auftraege-ui/rest/anzahlOffeneMBSAuftraege blk_3164864034487937677",
+# "20230116 204204.949587 200 OK application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-auftrag/auftraege-ui/rest/anzahlErfassteAuftraege blk_3164864034487937677"]
+ 
+#     log_reqseq = ["20230116 204548.058090 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban=\" von=2022-12-12 blk_5183501506773779593",
+# "20230116 204548.058412 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban=' von=2022-12-12 blk_5183501506773779593",
+# "20230116 204548.058511 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban=\ von=2022-12-12 blk_5183501506773779593",
+# "20230116 204548.058625 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban={base}' ' von=2022-12-12 blk_5183501506773779593",
+# "20230116 204548.058742 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban={base}-0 von=2022-12-12 blk_5183501506773779593",
+# "20230116 204548.058847 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban=\\ von=2022-12-12 blk_5183501506773779593",
+# "20230116 204548.058950 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban='' von=2022-12-12 blk_5183501506773779593",
+# "20230116 204548.059038 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban={base}*1 von=2022-12-12 blk_5183501506773779593",
+# "20230116 204548.059142 200 OK application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban=AT353400000000010017 von=2022-12-12 blk_5183501506773779593",
+# "20230116 204548.059233 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban={base}' ' von=2022-12-12 blk_5183501506773779593"]
+
+    labels = []
+    preds = []
+    acc = 100.0
+
+    # read lines from log file
+    with open(input_dir + log_file_orig) as f:
+        log_full = f.readlines()
+
+    # parse all r"(?<=blk_)[-\d]+" from log_full
+    blk_id_list = [re.findall(r"(blk_[-\d]+)", x)[0] for x in log_full]
+    # choose random element from blk_id_list
+    # blk_id_ = random.choice(blk_id_list)
+
+    for blk_id_ in tqdm(blk_id_list, desc=f'Acc {acc}'):
+        # filter by string
+        log_reqseq = [x for x in log_full if blk_id_ in x]
+        assert len(log_reqseq) == 10
+
+        anomalies = pd.read_csv(input_dir + 'anomaly_label.csv')
+        # get label of anomalies with blk_id_
+        label = anomalies[anomalies['BlockId']==blk_id_]['Label']
+        label = label.values[0]
+        isNormal = label == 'Anomaly'
+        labels.append(isNormal)
+
+        parser(log_reqseq, log_format, 'drain')
+        mapping() # generates http_log_templates.json
+        http_sampling(log_structured_file) # input: log_structured_file, generates http_sequence.csv
+        generate_train_test(log_sequence_file) #, n=4855)
+
+        # for line in log_reqseq:
+        #     print(line.strip())
+        # print()
+        print(f"Ground truth label: {label} from BlockId {blk_id_}\n---\n")
+
+        pred = ReqPredictor(options).predict()
+        preds.append(pred[0])
+
+        # calculate accuracy from labels and preds
+        labels_ = np.array(labels)
+        preds_ = np.array(preds)
+
+        acc = np.sum(labels_ == preds_) / len(labels_)
+        print(f"Accuracy: {acc}")
+        print('\n---\n')
+
+    # calculate accuracy from labels and preds
+    labels_ = np.array(labels)
+    preds_ = np.array(preds)
+
+    acc = np.sum(labels_ == preds_) / len(labels_)
+    print(f"Accuracy: {acc}")
