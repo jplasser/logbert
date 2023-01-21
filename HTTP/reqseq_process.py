@@ -82,6 +82,11 @@ options["num_candidates"] = 6
 options["gaussian_mean"] = 0
 options["gaussian_std"] = 1
 
+print("\n\nLade ML Modelle …", end='')
+options["model"] = torch.load(options["model_path"], map_location=torch.device('cpu'))
+options["center_dict"] = torch.load(options["model_dir"] + "best_center.pt", map_location=torch.device('cpu'))
+print(" - Erledigt!")
+
 # seed_everything(seed=4711)
 
 # get [log key, delta time] as input for deeplog
@@ -213,28 +218,6 @@ if __name__ == "__main__":
     log_format = '<Date> <Time> <State> <Reason> <ContentType> <Accept> <Host> <Method> <Content>'  # http log format
 
     # log_reqseq = [] # log sequence of 10 requests (strings from requests_full_log)
-
-#     log_reqseq = ["20230116 204204.949365 200 nan image/gif;charset=UTF-8 image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8 info.raiffeisen.at GET info.raiffeisen.at/int/t/track/3939373332/?ak=drb-pfp pref=https://pfp.tstux.pi.r-itservices.at/ sw=1920 sh=1080 dnt=false clang=de-DE ave=13.0.2 uid=21bd6f3d-ac40-43b1-bf68-5f1fbe726133 blz=34000 ubd=446857200000 ug=male pve=tstux-rit-drb-pfp-highest-rb env=tstux bg=RBG bgc=rbgooe bst=9 pp=/auftraege ppp=/meine-produkte/konten/AT353400000000010017/kontozentrale pauth=true watrc=53EB094D-C17A-48A0-890D-6F9912A1E646 wanv=C1EA7835-6F67-48B5-B3FB-F9E933892044 evt=pageview clientTimestamp=1673861265748 reason: blk_3164864034487937677",
-# "20230116 204204.949415 200 nan image/gif;charset=UTF-8 image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8 info.raiffeisen.at GET info.raiffeisen.at/int/t/track/3939373332/?ak=drb-pfp pref=https://pfp.tstux.pi.r-itservices.at/ sw=1920 sh=1080 dnt=false clang=de-DE ave=13.0.2 uid=21bd6f3d-ac40-43b1-bf68-5f1fbe726133 blz=34000 ubd=446857200000 ug=male pve=tstux-rit-drb-pfp-highest-rb env=tstux bg=RBG bgc=rbgooe bst=9 pp=/meine-produkte/konten/AT353400000000010017/kontozentrale ppp=/meine-produkte/konten/AT783400000000010116/kontozentrale pauth=true watrc=53EB094D-C17A-48A0-890D-6F9912A1E646 wanv=C1EA7835-6F67-48B5-B3FB-F9E933892044 evt=useraction evc=widgetsystem eva=mainNavClicked evv={\"name\":\"AuftrÃ¤ge\"} evla=MainNav geklickt clientTimestamp=1673861265732 reason: blk_3164864034487937677",
-# "20230116 204204.949475 304 Not Modified text/html;charset=ISO-8859-1 application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/bankingzv-auftrag/auftraege-ui/assets/config/wsConfig.json blk_3164864034487937677",
-# "20230116 204204.949492 304 Not Modified text/html;charset=ISO-8859-1 application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/bankingzv-auftrag/auftraege-ui/assets/i18n/de.json blk_3164864034487937677",
-# "20230116 204204.949508 200 OK text/plain application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/bankingzv-auftrag/auftraege-ui/assets/config/wsConfig.json blk_3164864034487937677",
-# "20230116 204204.949523 200 OK application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingws-widgetsystem/bankingws-ui/rest/produkte blk_3164864034487937677",
-# "20230116 204204.949539 200 OK text/plain application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/bankingzv-auftrag/auftraege-ui/assets/i18n/de.json blk_3164864034487937677",
-# "20230116 204204.949555 304 Not Modified text/html;charset=ISO-8859-1 application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/bankingzv-erfasster-auftrag/erfasster-auftrag-ui/assets/i18n/feature/de.json blk_3164864034487937677",
-# "20230116 204204.949571 200 OK application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-auftrag/auftraege-ui/rest/anzahlOffeneMBSAuftraege blk_3164864034487937677",
-# "20230116 204204.949587 200 OK application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-auftrag/auftraege-ui/rest/anzahlErfassteAuftraege blk_3164864034487937677"]
- 
-#     log_reqseq = ["20230116 204548.058090 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban=\" von=2022-12-12 blk_5183501506773779593",
-# "20230116 204548.058412 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban=' von=2022-12-12 blk_5183501506773779593",
-# "20230116 204548.058511 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban=\ von=2022-12-12 blk_5183501506773779593",
-# "20230116 204548.058625 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban={base}' ' von=2022-12-12 blk_5183501506773779593",
-# "20230116 204548.058742 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban={base}-0 von=2022-12-12 blk_5183501506773779593",
-# "20230116 204548.058847 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban=\\ von=2022-12-12 blk_5183501506773779593",
-# "20230116 204548.058950 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban='' von=2022-12-12 blk_5183501506773779593",
-# "20230116 204548.059038 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban={base}*1 von=2022-12-12 blk_5183501506773779593",
-# "20230116 204548.059142 200 OK application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban=AT353400000000010017 von=2022-12-12 blk_5183501506773779593",
-# "20230116 204548.059233 500 Internal Server Error application/json application/json, text/plain, */* pfp.tstux.pi.r-itservices.at GET pfp.tstux.pi.r-itservices.at/api/bankingzv-umsatz/umsatz-ui/rest/gesendeteAuftraege?iban={base}' ' von=2022-12-12 blk_5183501506773779593"]
 
     labels = []
     preds = []

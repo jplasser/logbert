@@ -215,17 +215,17 @@ class ReqPredictor():
                     #     pass
 
                 # if idx < 10 or idx % 1000 == 0:
-                #     print(
-                #         "{}, #time anomaly: {} # of undetected_tokens: {}, # of masked_tokens: {} , "
-                #         "# of total logkey {}, deepSVDD_label: {} \n".format(
-                #             file_name,
-                #             seq_results["num_error"],
-                #             seq_results["undetected_tokens"],
-                #             seq_results["masked_tokens"],
-                #             seq_results["total_logkey"],
-                #             seq_results['deepSVDD_label']
-                #         )
+                # print(
+                #     "{}, #time anomaly: {} # of undetected_tokens: {}, # of masked_tokens: {} , "
+                #     "# of total logkey {}, deepSVDD_label: {} \n".format(
+                #         file_name,
+                #         seq_results["num_error"],
+                #         seq_results["undetected_tokens"],
+                #         seq_results["masked_tokens"],
+                #         seq_results["total_logkey"],
+                #         seq_results['deepSVDD_label']
                 #     )
+                # )
                 total_results.append(seq_results)
 
         # for time
