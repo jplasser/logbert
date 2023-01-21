@@ -81,6 +81,7 @@ options["log_freq"] = None
 options["num_candidates"] = 6
 options["gaussian_mean"] = 0
 options["gaussian_std"] = 1
+options["seq_th"] = 0.8
 
 print("\n\nLade ML Modelle …", end='')
 options["model"] = torch.load(options["model_path"], map_location=torch.device('cpu'))
